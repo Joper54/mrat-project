@@ -2,8 +2,8 @@ import axios from 'axios';
 import { CountryScore, HistoricalScore } from '../types';
 import { analyzeNewsWithAI } from './aiNewsAnalysis';
 
-// Using environment variable if available, fallback to default
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Using environment variable if available, fallback to Render URL
+const API_URL = import.meta.env.VITE_API_URL || 'https://mrat-backend.onrender.com';
 
 // Create axios instance with default config
 const api = axios.create({
