@@ -7,4 +7,12 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  preview: {
+    host: true,
+    port: 3000,
+    allowedHosts: [
+      'mrat-frontend.onrender.com',
+      'localhost'
+    ]
+  }
 });
