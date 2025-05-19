@@ -40,6 +40,13 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, []);
 
+  // When mapping country data for the graph, use fallback values for missing data
+  const graphData = countries.map(country => ({
+    name: country.country || 'Unknown',
+    score: country.total_score || 0,
+    // Add other fields as needed
+  }));
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">

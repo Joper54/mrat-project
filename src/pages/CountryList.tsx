@@ -75,7 +75,7 @@ const CountryList: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {countries.map((country) => (
           <div
-            key={country._id}
+            key={country._id || country.country}
             className="bg-white dark:bg-gray-800 rounded-lg shadow transition-colors overflow-hidden"
           >
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -85,10 +85,10 @@ const CountryList: React.FC = () => {
                 </h2>
                 <div className="flex items-center mt-1">
                   <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-medium px-2 py-0.5 rounded-full mr-2">
-                    Rank #{country.rank}
+                    Rank #{country.rank || '-'}
                   </div>
-                  <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${getScoreBgColor(country.total_score)} ${getScoreColor(country.total_score)}`}>
-                    {country.total_score.toFixed(1)}/10
+                  <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${getScoreBgColor(country.total_score || 0)} ${getScoreColor(country.total_score || 0)}`}>
+                    {(country.total_score || 0).toFixed(1)}/10
                   </div>
                 </div>
               </div>
@@ -106,7 +106,7 @@ const CountryList: React.FC = () => {
                 Score Breakdown
               </h3>
               <div className="space-y-3">
-                {Object.entries(country.scores).map(([key, value]) => (
+                {country.scores ? Object.entries(country.scores).map(([key, value]) => (
                   <div key={key} className="flex items-center">
                     <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-1/3">
                       {aspectNameMap[key] || key}
@@ -115,15 +115,15 @@ const CountryList: React.FC = () => {
                       <div className="flex-grow bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
                         <div
                           className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full"
-                          style={{ width: `${value * 10}%` }}
+                          style={{ width: `${(typeof value === 'number' ? value : 0) * 10}%` }}
                         ></div>
                       </div>
-                      <span className={`text-xs font-medium whitespace-nowrap ${getScoreColor(value)}`}>
-                        {value.toFixed(1)}
+                      <span className={`text-xs font-medium whitespace-nowrap ${getScoreColor(typeof value === 'number' ? value : 0)}`}>
+                        {(typeof value === 'number' ? value : 0).toFixed(1)}
                       </span>
                     </div>
                   </div>
-                ))}
+                )) : <span className="text-xs text-gray-500 dark:text-gray-400">No scores available</span>}
               </div>
             </div>
             
@@ -142,7 +142,7 @@ const CountryList: React.FC = () => {
                     {country.news[0].title}
                     <ExternalLink size={12} className="inline-block ml-1 mb-1 opacity-70 group-hover:opacity-100" />
                   </a>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{country.news[0].source}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{country.news[0].source || 'Unknown source'}</span>
                 </div>
               ) : (
                 <span className="text-xs text-gray-500 dark:text-gray-400">No recent news</span>
