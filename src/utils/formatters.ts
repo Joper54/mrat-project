@@ -1,10 +1,18 @@
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
 
 export const formatDate = (dateString: string): string => {
   try {
     return format(parseISO(dateString), 'MMM d, yyyy');
   } catch (error) {
     return 'Invalid date';
+  }
+};
+
+export const formatTimeAgo = (dateString: string): string => {
+  try {
+    return formatDistanceToNow(parseISO(dateString), { addSuffix: true });
+  } catch (error) {
+    return '';
   }
 };
 
