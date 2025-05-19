@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const MONGODB_URI = 'mongodb+srv://joelsaarelainen:cbHEnuaylnWoHmJQ@cluster0.tcglbjj.mongodb.net/mrat?retryWrites=true&w=majority&appName=Cluster0';
+const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
 
 const scoreSchema = new mongoose.Schema({
   country: String,
@@ -293,6 +294,14 @@ initialData.forEach((data, index) => {
   data.rank = index + 1;
 });
 
+// Add normalization function after NEWSAPI_KEY:
+function normalizeScore(value, min = 0, max = 10) {
+  // Clamp and scale to 0-10
+  if (value < min) value = min;
+  if (value > max) value = max;
+  return ((value - min) / (max - min)) * 10;
+}
+
 async function seed() {
   try {
     await mongoose.connect(MONGODB_URI);
@@ -301,6 +310,15 @@ async function seed() {
     // Clear existing data
     await Score.deleteMany({});
     console.log('Cleared existing data');
+
+    // Normalize scores before saving
+    for (const country of initialData) {
+      for (const category in country.scores) {
+        for (const subscore in country.scores[category]) {
+          country.scores[category][subscore] = normalizeScore(country.scores[category][subscore]);
+        }
+      }
+    }
 
     // Insert new data
     await Score.insertMany(initialData);
