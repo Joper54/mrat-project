@@ -42,6 +42,16 @@ const CountryList: React.FC = () => {
     );
   }
 
+  if (!countries || countries.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center text-gray-500 dark:text-gray-400 py-16">
+          No countries available. Please check your data source or try again later.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">

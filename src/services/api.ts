@@ -4,6 +4,7 @@ import { analyzeNewsWithAI } from './aiNewsAnalysis';
 
 // Using environment variable if available, fallback to Render URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://mrat-backend.onrender.com';
+const NEWSAPI_KEY = '6bc821b5eda24b81b83bb021781cff1d';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -62,4 +63,12 @@ export const fetchCountryHistory = async (country: string): Promise<HistoricalSc
     }
     throw new Error('An unexpected error occurred while fetching country history.');
   }
+};
+
+export const fetchNews = async (country: string) => {
+  if (!NEWSAPI_KEY) throw new Error('NewsAPI key not set');
+  const url = `https://newsapi.org/v2/top-headlines?q=${encodeURIComponent(country)}&apiKey=${NEWSAPI_KEY}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch news');
+  return response.json();
 };

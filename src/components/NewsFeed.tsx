@@ -2,6 +2,7 @@ import React from 'react';
 import { ExternalLink, Clock, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { News } from '../types';
 import { formatDate, formatTimeAgo, aspectNameMap } from '../utils/formatters';
+import { fetchNews } from '../services/api';
 
 interface NewsFeedProps {
   news: News[];
@@ -16,7 +17,22 @@ const SentimentIcon: React.FC<{ sentiment: string }> = ({ sentiment }) => {
 };
 
 const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false }) => {
-  if (loading) {
+  const [fetchedNews, setFetchedNews] = React.useState<News[]>(news || []);
+  const [isLoading, setIsLoading] = React.useState(loading);
+
+  React.useEffect(() => {
+    if (!news || news.length === 0) {
+      setIsLoading(true);
+      fetchNews(countryName)
+        .then((data) => {
+          setFetchedNews(data.articles || []);
+        })
+        .catch(() => setFetchedNews([]))
+        .finally(() => setIsLoading(false));
+    }
+  }, [countryName, news]);
+
+  if (isLoading) {
     return (
       <div className="animate-pulse">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
@@ -31,7 +47,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false 
     );
   }
 
-  if (!news || news.length === 0) {
+  if (!fetchedNews || fetchedNews.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors h-full">
         <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
@@ -50,7 +66,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false 
         {countryName} News
       </h3>
       <div className="space-y-4">
-        {news.map((article, index) => (
+        {fetchedNews.map((article, index) => (
           <div 
             key={index} 
             className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
