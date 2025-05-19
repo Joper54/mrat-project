@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const MONGODB_URI = 'mongodb+srv://joelsaarelainen:cbHEnuaylnWoHmJQ@cluster0.tcglbjj.mongodb.net/mrat?retryWrites=true&w=majority&appName=Cluster0';
-const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
+const NEWSAPI_KEY = '6bc821b5eda24b81b83bb021781cff1d';
 
 const scoreSchema = new mongoose.Schema({
   country: String,
