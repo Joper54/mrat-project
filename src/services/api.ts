@@ -85,28 +85,123 @@ export const fetchCountryHistory = async (country: string): Promise<HistoricalSc
 export const fetchNews = async (country: string) => {
   if (!DEEPSEEK_API_KEY) throw new Error('DeepSeek API key not set');
   const code = countryCodeMap[country] || country;
-  const url = `${DEEPSEEK_BASE_URL}/v1/news?country=${code}`;
+  
+  // First try to get news from DeepSeek's news endpoint
+  const url = `${DEEPSEEK_BASE_URL}/v1/chat/completions`;
+  const prompt = `Find the latest news articles about ${country}. Focus on development, economy, and social issues. Return the results in this JSON format:
+  {
+    "articles": [
+      {
+        "title": "Article title",
+        "description": "Brief description",
+        "url": "Source URL",
+        "source": "News source name",
+        "publishedAt": "Publication date"
+      }
+    ]
+  }`;
+
   const response = await fetch(url, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a news aggregator specializing in African development news.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000
+    })
   });
+
   if (!response.ok) throw new Error('Failed to fetch news from DeepSeek');
-  return response.json();
+  
+  const data = await response.json();
+  try {
+    // Parse the response content as JSON
+    const newsData = JSON.parse(data.choices[0].message.content);
+    return newsData;
+  } catch (error) {
+    console.error('Error parsing news data:', error);
+    return { articles: [] };
+  }
 };
 
 export const fetchCountryData = async (country: string) => {
   if (!DEEPSEEK_API_KEY) throw new Error('DeepSeek API key not set');
-  const url = `${DEEPSEEK_BASE_URL}/v1/country-data?country=${country}`;
+  
+  const url = `${DEEPSEEK_BASE_URL}/v1/chat/completions`;
+  const prompt = `Analyze the current state of ${country} and provide development indicators. Return the results in this JSON format:
+  {
+    "indicators": {
+      "gdp": "Current GDP value",
+      "gdpGrowth": "GDP growth rate",
+      "inflation": "Inflation rate",
+      "unemployment": "Unemployment rate",
+      "poverty": "Poverty rate",
+      "education": "Education indicators",
+      "health": "Health indicators"
+    },
+    "scores": {
+      "economic": "Score out of 10",
+      "social": "Score out of 10",
+      "environmental": "Score out of 10",
+      "governance": "Score out of 10",
+      "infrastructure": "Score out of 10"
+    },
+    "rank": "Current rank among African countries",
+    "total_score": "Overall score out of 10"
+  }`;
+
   const response = await fetch(url, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert in African development indicators and analysis.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000
+    })
   });
+
   if (!response.ok) throw new Error('Failed to fetch country data from DeepSeek');
-  return response.json();
+  
+  const data = await response.json();
+  try {
+    // Parse the response content as JSON
+    const countryData = JSON.parse(data.choices[0].message.content);
+    return countryData;
+  } catch (error) {
+    console.error('Error parsing country data:', error);
+    return {
+      indicators: {},
+      scores: {},
+      rank: 0,
+      total_score: 0
+    };
+  }
 };
 
 export const fetchAllCountries = async () => {

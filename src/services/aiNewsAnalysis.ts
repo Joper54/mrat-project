@@ -6,14 +6,27 @@ const DEEPSEEK_BASE_URL = 'https://api.deepseek.com';
 export const analyzeNewsWithAI = async (news: News[]): Promise<NewsAnalysis> => {
   if (!DEEPSEEK_API_KEY) throw new Error('DeepSeek API key not set');
 
-  const prompt = `Analyze the following news articles and provide insights about the country's current situation:
-    ${JSON.stringify(news, null, 2)}
-    
-    Please provide:
-    1. A brief summary of the main developments
-    2. Key trends and patterns
-    3. Potential implications for the country's development
-    4. Areas of concern or opportunity`;
+  const prompt = `Analyze these news articles about ${news[0]?.country || 'the country'} and provide a detailed analysis in this JSON format:
+  {
+    "summary": "A comprehensive summary of the main developments",
+    "sentiment": "positive/negative/neutral",
+    "keyPoints": [
+      "Key point 1",
+      "Key point 2",
+      "Key point 3"
+    ],
+    "implications": [
+      "Implication 1",
+      "Implication 2"
+    ],
+    "recommendations": [
+      "Recommendation 1",
+      "Recommendation 2"
+    ]
+  }
+
+  Articles to analyze:
+  ${JSON.stringify(news, null, 2)}`;
 
   const response = await fetch(`${DEEPSEEK_BASE_URL}/v1/chat/completions`, {
     method: 'POST',
@@ -26,7 +39,7 @@ export const analyzeNewsWithAI = async (news: News[]): Promise<NewsAnalysis> => 
       messages: [
         {
           role: 'system',
-          content: 'You are an expert analyst specializing in African development and current affairs.'
+          content: 'You are an expert analyst specializing in African development and current affairs. Provide detailed, accurate analysis with specific examples and data points when available.'
         },
         {
           role: 'user',
@@ -34,7 +47,7 @@ export const analyzeNewsWithAI = async (news: News[]): Promise<NewsAnalysis> => 
         }
       ],
       temperature: 0.7,
-      max_tokens: 1000
+      max_tokens: 1500
     })
   });
 
@@ -43,10 +56,25 @@ export const analyzeNewsWithAI = async (news: News[]): Promise<NewsAnalysis> => 
   }
 
   const data = await response.json();
-  return {
-    summary: data.choices[0].message.content,
-    sentiment: 'neutral', // DeepSeek can provide this if needed
-    keyPoints: [], // DeepSeek can provide this if needed
-    timestamp: new Date().toISOString()
-  };
+  try {
+    const analysis = JSON.parse(data.choices[0].message.content);
+    return {
+      summary: analysis.summary,
+      sentiment: analysis.sentiment,
+      keyPoints: analysis.keyPoints,
+      implications: analysis.implications,
+      recommendations: analysis.recommendations,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Error parsing news analysis:', error);
+    return {
+      summary: data.choices[0].message.content,
+      sentiment: 'neutral',
+      keyPoints: [],
+      implications: [],
+      recommendations: [],
+      timestamp: new Date().toISOString()
+    };
+  }
 };

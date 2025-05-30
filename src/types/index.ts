@@ -1,11 +1,10 @@
 export interface News {
   title: string;
+  description?: string;
   url: string;
   source: string;
-  published_at: string;
-  summary: string;
-  sentiment: string;
-  category: string;
+  publishedAt: string;
+  country?: string;
 }
 
 export interface Scores {
@@ -65,4 +64,13 @@ export interface HistoricalScore {
   date: string;
   scores: Scores;
   total_score: number;
+}
+
+export interface NewsAnalysis {
+  summary: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  keyPoints: string[];
+  implications: string[];
+  recommendations: string[];
+  timestamp: string;
 }
