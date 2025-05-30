@@ -5,6 +5,8 @@ import { analyzeNewsWithAI } from './aiNewsAnalysis';
 // Using environment variable if available, fallback to Render URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://mrat-backend.onrender.com';
 const NEWSAPI_KEY = '6bc821b5eda24b81b83bb021781cff1d';
+const DEEPSEEK_API_KEY = 'sk-25db6ab5fbbf4c62819e20659bd032d2';
+const DEEPSEEK_BASE_URL = 'https://api.deepseek.com';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -25,6 +27,10 @@ const countryCodeMap: Record<string, string> = {
   'Morocco': 'ma',
   // Add more as needed
 };
+
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+let cachedData: any = null;
+let lastFetchTime = 0;
 
 export const fetchAllScores = async (): Promise<CountryScore[]> => {
   try {
@@ -77,15 +83,49 @@ export const fetchCountryHistory = async (country: string): Promise<HistoricalSc
 };
 
 export const fetchNews = async (country: string) => {
-  if (!NEWSAPI_KEY) throw new Error('NewsAPI key not set');
+  if (!DEEPSEEK_API_KEY) throw new Error('DeepSeek API key not set');
   const code = countryCodeMap[country] || country;
-  let url = `https://newsapi.org/v2/top-headlines?country=${code}&apiKey=${NEWSAPI_KEY}`;
-  let response = await fetch(url);
-  if (response.status === 429 || !response.ok) {
-    // Fallback to DeepSeek API (replace with actual endpoint and key if needed)
-    url = `https://api.deepseek.com/v1/news?country=${code}`;
-    response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to fetch news from both NewsAPI and DeepSeek');
-  }
+  const url = `${DEEPSEEK_BASE_URL}/v1/news?country=${code}`;
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch news from DeepSeek');
   return response.json();
+};
+
+export const fetchCountryData = async (country: string) => {
+  if (!DEEPSEEK_API_KEY) throw new Error('DeepSeek API key not set');
+  const url = `${DEEPSEEK_BASE_URL}/v1/country-data?country=${country}`;
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch country data from DeepSeek');
+  return response.json();
+};
+
+export const fetchAllCountries = async () => {
+  const now = Date.now();
+  if (cachedData && (now - lastFetchTime) < CACHE_DURATION) {
+    return cachedData;
+  }
+
+  if (!DEEPSEEK_API_KEY) throw new Error('DeepSeek API key not set');
+  const url = `${DEEPSEEK_BASE_URL}/v1/all-countries`;
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch all countries data from DeepSeek');
+  
+  cachedData = await response.json();
+  lastFetchTime = now;
+  return cachedData;
 };
