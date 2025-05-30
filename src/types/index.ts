@@ -72,5 +72,10 @@ export interface NewsAnalysis {
   keyPoints: string[];
   implications: string[];
   recommendations: string[];
+  sources: Array<{
+    title: string;
+    url: string;
+    reliability: 'high' | 'medium' | 'low';
+  }>;
   timestamp: string;
 }
