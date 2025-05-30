@@ -40,7 +40,7 @@ export interface Scores {
   };
 }
 
-export interface Weights {
+export interface UserWeights {
   infrastructure: number;
   regulatory: number;
   market_demand: number;
@@ -53,10 +53,9 @@ export interface CountryScore {
   country: string;
   date: string;
   scores: Scores;
-  weights: Weights;
+  weights: UserWeights;
   total_score: number;
   rank: number;
-  news: News[];
   last_updated: string;
 }
 
