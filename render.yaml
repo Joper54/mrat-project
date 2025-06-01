@@ -16,7 +16,7 @@ services:
     name: mrat-backend
     env: node
     buildCommand: npm install && npm run build:server
-    startCommand: npm run start:server
+    startCommand: node dist/server/index.js
     envVars:
       - key: MONGODB_URI
         value: mongodb+srv://joelsaarelainen:cbHEnuaylnWoHmJQ@cluster0.tcglbjj.mongodb.net/mrat?retryWrites=true&w=majority&appName=Cluster0
