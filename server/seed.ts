@@ -5,61 +5,61 @@ const countries = [
   {
     name: 'Nigeria',
     scores: {
-      infrastructure: 65,
-      market: 75,
-      workforce: 70,
-      regulatory: 60,
-      sustainability: 55
+      infrastructure: { total: 65 },
+      market: { total: 75 },
+      workforce: { total: 70 },
+      regulatory: { total: 60 },
+      sustainability: { total: 55 }
     }
   },
   {
     name: 'Ghana',
     scores: {
-      infrastructure: 70,
-      market: 65,
-      workforce: 75,
-      regulatory: 70,
-      sustainability: 60
+      infrastructure: { total: 70 },
+      market: { total: 65 },
+      workforce: { total: 75 },
+      regulatory: { total: 70 },
+      sustainability: { total: 60 }
     }
   },
   {
     name: 'South Africa',
     scores: {
-      infrastructure: 80,
-      market: 85,
-      workforce: 80,
-      regulatory: 75,
-      sustainability: 70
+      infrastructure: { total: 80 },
+      market: { total: 85 },
+      workforce: { total: 80 },
+      regulatory: { total: 75 },
+      sustainability: { total: 70 }
     }
   },
   {
     name: 'Kenya',
     scores: {
-      infrastructure: 70,
-      market: 70,
-      workforce: 75,
-      regulatory: 65,
-      sustainability: 65
+      infrastructure: { total: 70 },
+      market: { total: 70 },
+      workforce: { total: 75 },
+      regulatory: { total: 65 },
+      sustainability: { total: 65 }
     }
   },
   {
     name: 'Egypt',
     scores: {
-      infrastructure: 75,
-      market: 80,
-      workforce: 70,
-      regulatory: 70,
-      sustainability: 60
+      infrastructure: { total: 75 },
+      market: { total: 80 },
+      workforce: { total: 70 },
+      regulatory: { total: 70 },
+      sustainability: { total: 60 }
     }
   },
   {
     name: 'Morocco',
     scores: {
-      infrastructure: 75,
-      market: 75,
-      workforce: 70,
-      regulatory: 70,
-      sustainability: 65
+      infrastructure: { total: 75 },
+      market: { total: 75 },
+      workforce: { total: 70 },
+      regulatory: { total: 70 },
+      sustainability: { total: 65 }
     }
   }
 ];
