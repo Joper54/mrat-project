@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 10000; // Render's default port
+const port = process.env.PORT || 3001; // Updated to match Render environment
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
