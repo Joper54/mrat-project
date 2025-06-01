@@ -59,11 +59,11 @@ const countrySchema = new mongoose.Schema({
       required: true
     },
     scores: {
-      infrastructure: Number,
-      market: Number,
-      workforce: Number,
-      regulatory: Number,
-      sustainability: Number
+      infrastructure: { total: Number },
+      market: { total: Number },
+      workforce: { total: Number },
+      regulatory: { total: Number },
+      sustainability: { total: Number }
     }
   }],
   lastUpdated: {
@@ -72,4 +72,5 @@ const countrySchema = new mongoose.Schema({
   }
 });
 
-export const Country = mongoose.model('Country', countrySchema); 
+const Country = mongoose.model('Country', countrySchema);
+export default Country; 
