@@ -49,16 +49,6 @@ export const updateCountryScores = async (countryName: string, scores: any) => {
   }
 };
 
-export const addCountryNews = async (countryName: string, news: any) => {
-  try {
-    const response = await axios.post(`${API_URL}/countries/${countryName}/news`, news);
-    return response.data;
-  } catch (error) {
-    console.error(`Error adding news for ${countryName}:`, error);
-    throw error;
-  }
-};
-
 const calculateTotalScore = (scores: any, weights?: UserWeights): number => {
   if (!weights) {
     return Object.values(scores).reduce((sum: number, score: any) => sum + score, 0) / 5;
