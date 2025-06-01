@@ -72,3 +72,33 @@ const calculateTotalScore = (scores: any, weights?: UserWeights): number => {
     scores.sustainability * weights.sustainability
   );
 };
+
+export const exportToExcel = (countries: CountryScore[]) => {
+  // Create CSV content
+  const headers = ['Rank', 'Country', 'Total Score', 'Infrastructure', 'Regulatory', 'Market Demand', 'Stability', 'Partnership'];
+  const rows = countries.map(country => [
+    country.rank,
+    country.country,
+    country.totalScore.toFixed(2),
+    country.scores.infrastructure.toFixed(2),
+    country.scores.regulatory.toFixed(2),
+    country.scores.market.toFixed(2),
+    country.scores.workforce.toFixed(2),
+    country.scores.sustainability.toFixed(2)
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+
+  // Create and download file
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'country_rankings.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
