@@ -5,6 +5,7 @@ import CountryComparison from '../components/CountryComparison';
 import CountrySelector from '../components/CountrySelector';
 import { fetchAllScores } from '../services/api';
 import { CountryScore } from '../types';
+import DashboardTabs from '../components/DashboardTabs';
 
 const Dashboard: React.FC = () => {
   const [countries, setCountries] = useState<CountryScore[]>([]);
@@ -43,12 +44,13 @@ const Dashboard: React.FC = () => {
   // When mapping country data for the graph, use fallback values for missing data
   const graphData = countries.map(country => ({
     name: country.country || 'Unknown',
-    score: country.total_score || 0,
+    score: country.totalScore || 0,
     // Add other fields as needed
   }));
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <DashboardTabs />
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Manufacturing Readiness Assessment Tool

@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 import axios from 'axios';
-import dotenv from 'dotenv';
 import Country from './models/Country.js';
 
-dotenv.config();
+envLoad();
 
 const MONGODB_URI = process.env.MONGODB_URI || '';
 
@@ -32,12 +31,8 @@ async function seed() {
   await mongoose.connect(MONGODB_URI);
   console.log('Connected to MongoDB');
 
-  // Clear the collection before seeding
-  await Country.deleteMany({});
-  console.log('Cleared Country collection');
-
-  const gdpData = await fetchGDP();
-  const gdpMap = {};
+  const gdpData: any[] = await fetchGDP();
+  const gdpMap: Record<string, number | null> = {};
   for (const entry of gdpData) {
     gdpMap[String(entry.country.id)] = entry.value;
   }
@@ -49,11 +44,11 @@ async function seed() {
         $set: {
           name: c.name,
           scores: {
-            infrastructure: { total: randomScore() },
-            market: { total: randomScore() },
-            workforce: { total: randomScore() },
-            regulatory: { total: randomScore() },
-            sustainability: { total: randomScore() }
+            infrastructure: randomScore(),
+            market: randomScore(),
+            workforce: randomScore(),
+            regulatory: randomScore(),
+            sustainability: randomScore()
           },
           lastUpdated: new Date()
         },
@@ -61,11 +56,11 @@ async function seed() {
           history: {
             date: new Date(),
             scores: {
-              infrastructure: { total: randomScore() },
-              market: { total: randomScore() },
-              workforce: { total: randomScore() },
-              regulatory: { total: randomScore() },
-              sustainability: { total: randomScore() }
+              infrastructure: randomScore(),
+              market: randomScore(),
+              workforce: randomScore(),
+              regulatory: randomScore(),
+              sustainability: randomScore()
             }
           }
         }
@@ -77,6 +72,13 @@ async function seed() {
 
   await mongoose.disconnect();
   console.log('Seeding complete!');
+}
+
+function envLoad() {
+  // Load .env if running locally
+  try {
+    require('dotenv').config();
+  } catch {}
 }
 
 seed().catch((err) => {
