@@ -5,7 +5,6 @@ import WeightAdjuster from './components/WeightAdjuster';
 import CountryTable from './components/CountryTable';
 import RadarChart from './components/RadarChart';
 import ConfigCheck from './components/ConfigCheck';
-import ApiTest from './components/ApiTest';
 
 function App() {
   const [countries, setCountries] = useState<CountryScore[]>([]);
@@ -91,7 +90,6 @@ function App() {
         )}
       </div>
       <ConfigCheck />
-      <ApiTest />
     </div>
   );
 }
