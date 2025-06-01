@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 
+const scoreSchema = new mongoose.Schema({
+  total: { type: Number, required: true }
+}, { _id: false });
+
 const countrySchema = new mongoose.Schema({
   name: {
     type: String,
@@ -7,36 +11,11 @@ const countrySchema = new mongoose.Schema({
     unique: true
   },
   scores: {
-    infrastructure: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 100
-    },
-    market: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 100
-    },
-    workforce: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 100
-    },
-    regulatory: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 100
-    },
-    sustainability: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 100
-    }
+    infrastructure: scoreSchema,
+    market: scoreSchema,
+    workforce: scoreSchema,
+    regulatory: scoreSchema,
+    sustainability: scoreSchema
   },
   news: [{
     title: String,
@@ -59,11 +38,11 @@ const countrySchema = new mongoose.Schema({
       required: true
     },
     scores: {
-      infrastructure: { total: Number },
-      market: { total: Number },
-      workforce: { total: Number },
-      regulatory: { total: Number },
-      sustainability: { total: Number }
+      infrastructure: scoreSchema,
+      market: scoreSchema,
+      workforce: scoreSchema,
+      regulatory: scoreSchema,
+      sustainability: scoreSchema
     }
   }],
   lastUpdated: {
