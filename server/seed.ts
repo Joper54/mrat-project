@@ -1,5 +1,5 @@
-import { connectDB } from './config/db';
-import { Country } from './models/Country';
+import { connectDB } from './config/db.js';
+import { Country } from './models/Country.js';
 
 const countries = [
   {
