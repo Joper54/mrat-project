@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT || '5000', 10);
+const port = process.env.PORT || 10000; // Render's default port
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -52,20 +52,10 @@ const startServer = async () => {
   try {
     await connectDB();
     
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server is running on port ${PORT}`);
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`MongoDB URI: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
-    });
-
-    // Handle server errors
-    server.on('error', (error: NodeJS.ErrnoException) => {
-      if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use`);
-      } else {
-        console.error('Server error:', error);
-      }
-      process.exit(1);
     });
 
   } catch (error) {
