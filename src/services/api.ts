@@ -1,8 +1,5 @@
-import axios from 'axios';
 import { CountryScore, HistoricalScore, UserWeights } from '../types';
-
-// Using environment variable if available, fallback to Render URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://mrat-backend.onrender.com';
+import { fetchAllCountriesData, fetchCountryNews, fetchCountryHistory as fetchAimlCountryHistory } from './aimlApi';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -73,77 +70,30 @@ const calculateTotalScores = (scores: any, weights: UserWeights) => {
   return totalScore;
 };
 
-export const fetchAllScores = async (userWeights?: UserWeights): Promise<CountryScore[]> => {
+export const fetchAllScores = async (weights?: UserWeights): Promise<CountryScore[]> => {
   try {
-    // Generate mock data
-    const defaultWeights: UserWeights = {
-      infrastructure: 0.2,
-      regulatory: 0.2,
-      market_demand: 0.2,
-      stability: 0.2,
-      partnership: 0.2
-    };
-
-    const weights = userWeights || defaultWeights;
-    const scores = mockCountries.map(country => {
-      const countryScores = generateMockScores(country);
-      const total_score = calculateTotalScores(countryScores, weights);
-      
-      return {
-        _id: Math.random().toString(36).substr(2, 9),
-        country,
-        date: new Date().toISOString(),
-        scores: countryScores,
-        weights,
-        total_score,
-        rank: 0,
-        last_updated: new Date().toISOString()
-      };
-    });
-
-    // Sort by total score and assign ranks
-    scores.sort((a, b) => b.total_score - a.total_score);
-    scores.forEach((score, index) => {
-      score.rank = index + 1;
-    });
-
-    return scores;
+    return await fetchAllCountriesData(weights);
   } catch (error) {
-    console.error('Error generating mock scores:', error);
-    throw new Error('Failed to generate mock scores');
+    console.error('Error fetching scores:', error);
+    throw new Error('Failed to fetch country data');
+  }
+};
+
+export const fetchNews = async (country: string) => {
+  try {
+    return await fetchCountryNews(country);
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    throw new Error('Failed to fetch news data');
   }
 };
 
 export const fetchCountryHistory = async (country: string): Promise<HistoricalScore[]> => {
   try {
-    // Generate mock historical data
-    const history: HistoricalScore[] = [];
-    const months = 12;
-    
-    for (let i = 0; i < months; i++) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      
-      const scores = generateMockScores(country);
-      const total_score = calculateTotalScores(scores, {
-        infrastructure: 0.2,
-        regulatory: 0.2,
-        market_demand: 0.2,
-        stability: 0.2,
-        partnership: 0.2
-      });
-
-      history.push({
-        date: date.toISOString(),
-        scores,
-        total_score
-      });
-    }
-
-    return history;
+    return await fetchAimlCountryHistory(country);
   } catch (error) {
-    console.error('Error generating mock history:', error);
-    throw new Error('Failed to generate mock history');
+    console.error('Error fetching country history:', error);
+    throw new Error('Failed to fetch country history');
   }
 };
 

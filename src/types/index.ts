@@ -5,6 +5,8 @@ export interface News {
   source: string;
   publishedAt: string;
   country?: string;
+  sentiment?: 'positive' | 'negative' | 'neutral';
+  reliability?: 'high' | 'medium' | 'low';
 }
 
 export interface Scores {
@@ -56,6 +58,7 @@ export interface CountryScore {
   weights: UserWeights;
   total_score: number;
   rank: number;
+  news: News[];
   last_updated: string;
 }
 
