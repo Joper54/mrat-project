@@ -14,31 +14,38 @@ interface RadarChartProps {
   country: string;
 }
 
+const getScoreValue = (score: any) =>
+  typeof score === 'object' && score !== null && 'total' in score
+    ? score.total
+    : typeof score === 'number'
+    ? score
+    : 0;
+
 const RadarChart: React.FC<RadarChartProps> = ({ scores, country }) => {
   const data = [
     {
       category: 'Infrastructure',
-      score: scores.infrastructure.total,
+      score: getScoreValue(scores.infrastructure),
       fullMark: 10
     },
     {
       category: 'Regulatory',
-      score: scores.regulatory.total,
+      score: getScoreValue(scores.regulatory),
       fullMark: 10
     },
     {
-      category: 'Market Demand',
-      score: scores.market_demand.total,
+      category: 'Market',
+      score: getScoreValue(scores.market),
       fullMark: 10
     },
     {
-      category: 'Stability',
-      score: scores.stability.total,
+      category: 'Workforce',
+      score: getScoreValue(scores.workforce),
       fullMark: 10
     },
     {
-      category: 'Partnership',
-      score: scores.partnership.total,
+      category: 'Sustainability',
+      score: getScoreValue(scores.sustainability),
       fullMark: 10
     }
   ];
