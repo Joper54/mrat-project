@@ -26,21 +26,6 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/countries', countryRoutes);
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../../dist');
-  app.use(express.static(distPath));
-  
-  // Handle all other routes by serving index.html
-  app.get('*', (req, res, next) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
-
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
