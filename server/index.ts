@@ -17,23 +17,32 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use('/api/countries', countryRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../dist')));
+  const distPath = path.join(__dirname, '../../dist');
+  app.use(express.static(distPath));
   
+  // Handle all other routes by serving index.html
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../dist/index.html'));
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
 // Connect to MongoDB
-connectDB();
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+connectDB().then(() => {
+  // Start server
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}).catch(error => {
+  console.error('Failed to connect to MongoDB:', error);
+  process.exit(1);
 }); 
