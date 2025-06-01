@@ -4,17 +4,17 @@ import { Country } from '../models/Country.js';
 const router = express.Router();
 
 // Get all countries with their scores
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const countries = await Country.find().select('name scores');
     res.json(countries);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching countries', error });
+    next(error);
   }
 });
 
 // Get a specific country with all details
-router.get('/:name', async (req, res) => {
+router.get('/:name', async (req, res, next) => {
   try {
     const country = await Country.findOne({ name: req.params.name });
     if (!country) {
@@ -22,12 +22,12 @@ router.get('/:name', async (req, res) => {
     }
     res.json(country);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching country', error });
+    next(error);
   }
 });
 
 // Update country scores
-router.put('/:name/scores', async (req, res) => {
+router.put('/:name/scores', async (req, res, next) => {
   try {
     const country = await Country.findOne({ name: req.params.name });
     if (!country) {
@@ -44,12 +44,12 @@ router.put('/:name/scores', async (req, res) => {
     await country.save();
     res.json(country);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating country scores', error });
+    next(error);
   }
 });
 
 // Add news to a country
-router.post('/:name/news', async (req, res) => {
+router.post('/:name/news', async (req, res, next) => {
   try {
     const country = await Country.findOne({ name: req.params.name });
     if (!country) {
@@ -60,7 +60,7 @@ router.post('/:name/news', async (req, res) => {
     await country.save();
     res.json(country);
   } catch (error) {
-    res.status(500).json({ message: 'Error adding news', error });
+    next(error);
   }
 });
 

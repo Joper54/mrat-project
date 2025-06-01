@@ -26,14 +26,20 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(distPath));
   
   // Handle all other routes by serving index.html
-  app.get('*', (req, res) => {
+  app.get('*', (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ message: 'API endpoint not found' });
+      return next();
     }
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
+
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err);
+  res.status(500).json({ message: 'Internal server error', error: err.message });
+});
 
 // Connect to MongoDB
 connectDB().then(() => {
