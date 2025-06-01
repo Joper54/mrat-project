@@ -4,6 +4,17 @@ const scoreSchema = new mongoose.Schema({
   total: { type: Number, required: true }
 }, { _id: false });
 
+const historySchema = new mongoose.Schema({
+  date: { type: Date, required: true },
+  scores: {
+    infrastructure: scoreSchema,
+    market: scoreSchema,
+    workforce: scoreSchema,
+    regulatory: scoreSchema,
+    sustainability: scoreSchema
+  }
+}, { _id: false });
+
 const countrySchema = new mongoose.Schema({
   name: {
     type: String,
@@ -32,19 +43,7 @@ const countrySchema = new mongoose.Schema({
       max: 1
     }
   }],
-  history: [{
-    date: {
-      type: Date,
-      required: true
-    },
-    scores: {
-      infrastructure: scoreSchema,
-      market: scoreSchema,
-      workforce: scoreSchema,
-      regulatory: scoreSchema,
-      sustainability: scoreSchema
-    }
-  }],
+  history: [historySchema],
   lastUpdated: {
     type: Date,
     default: Date.now
