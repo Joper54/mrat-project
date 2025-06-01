@@ -5,7 +5,20 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm run preview
     envVars:
-      - key: VITE_AIML_API_KEY
-        value: 0ee9fcb0dc9c48eb95f182c2908da717
-      - key: VITE_AIML_API_URL
-        value: https://api.aimlapi.com/v1 
+      - key: VITE_API_URL
+        value: https://mrat-backend.onrender.com/api
+      - key: NODE_VERSION
+        value: 18.17.0
+
+  - type: web
+    name: mrat-backend
+    env: node
+    buildCommand: npm install && npm run build:server
+    startCommand: npm run start:server
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: PORT
+        value: 5000
+      - key: NODE_VERSION
+        value: 18.17.0 
