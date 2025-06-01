@@ -5,6 +5,11 @@ import Country from './models/Country.js';
 
 dotenv.config();
 
+const GEMINI_API_KEY = 'AIzaSyA3ZCnyB01g776rPPLUABmuzQTB_h-bU6s';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const NEWSAPI_KEY = 'b7e0e6e2e6e94e1c8e6e2e6e94e1c8e6'; // Replace with your actual NewsAPI key if different
+const NEWSAPI_URL = 'https://newsapi.org/v2/everything';
+
 const MONGODB_URI = process.env.MONGODB_URI || '';
 const countries = [
   { code: 'NGA', name: 'Nigeria' },
@@ -14,18 +19,6 @@ const countries = [
   { code: 'EGY', name: 'Egypt' },
   { code: 'MAR', name: 'Morocco' }
 ];
-
-const AIML_API_KEY = process.env.VITE_AIML_API_KEY || process.env.AIML_API_KEY || '0ee9fcb0dc9c48eb95f182c2908da717';
-const AIML_BASE_URL = process.env.VITE_AIML_API_URL || process.env.AIML_API_URL || 'https://api.aimlapi.com/v1';
-
-const aimlApi = axios.create({
-  baseURL: AIML_BASE_URL,
-  headers: {
-    'Authorization': `Bearer ${AIML_API_KEY}`,
-    'Content-Type': 'application/json'
-  },
-  timeout: 10000
-});
 
 async function fetchWorldBankGDP(code) {
   try {
@@ -39,32 +32,46 @@ async function fetchWorldBankGDP(code) {
   }
 }
 
-async function fetchAIMLData(name) {
+async function geminiAnalyzeCountry(name, scores) {
   try {
-    const response = await aimlApi.get(`/countries/${name}`);
-    const d = response.data;
-    return {
-      infrastructure: { total: d.infrastructure?.total || 0 },
-      regulatory: { total: d.regulatory?.total || 0 },
-      market: { total: d.market_demand?.total || 0 },
-      workforce: { total: d.workforce?.total || 0 },
-      sustainability: { total: d.sustainability?.total || 0 }
-    };
-  } catch {
-    return null;
+    const prompt = `Analyze the following country scores for ${name} and provide a short summary and sentiment (positive, neutral, or negative):\n${JSON.stringify(scores)}`;
+    const response = await axios.post(
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }]
+      }
+    );
+    const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // Try to extract sentiment if present
+    let sentiment = 'neutral';
+    if (/positive/i.test(text)) sentiment = 'positive';
+    else if (/negative/i.test(text)) sentiment = 'negative';
+    return { summary: text, sentiment };
+  } catch (err) {
+    return { summary: 'No analysis available', sentiment: 'neutral' };
   }
 }
 
-async function fetchNewsAnalysis(name) {
+async function fetchNewsFromNewsAPI(name) {
   try {
-    const response = await aimlApi.get(`/news/${name}`);
-    const data = response.data;
-    return {
-      sentiment: data.sentiment || 'neutral',
-      summary: data.summary || 'No summary available'
-    };
+    const response = await axios.get(NEWSAPI_URL, {
+      params: {
+        q: `${name} manufacturing OR economy OR business`,
+        apiKey: NEWSAPI_KEY,
+        language: 'en',
+        sortBy: 'publishedAt',
+        pageSize: 3
+      }
+    });
+    return (response.data.articles || []).map(article => ({
+      title: article.title,
+      summary: article.description || '',
+      url: article.url,
+      publishedAt: article.publishedAt,
+      source: article.source.name
+    }));
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -88,31 +95,27 @@ async function seed() {
       };
       console.log(`Seeded ${c.name} from World Bank`);
     } else {
-      // Fallback to AIML API
-      const aimlScores = await fetchAIMLData(c.name);
-      if (aimlScores) {
-        scores = aimlScores;
-        console.log(`Seeded ${c.name} from AIML API`);
-      } else {
-        // Fallback to random
-        scores = {
-          infrastructure: { total: Math.round(Math.random() * 40 + 60) },
-          regulatory: { total: Math.round(Math.random() * 40 + 60) },
-          market: { total: Math.round(Math.random() * 40 + 60) },
-          workforce: { total: Math.round(Math.random() * 40 + 60) },
-          sustainability: { total: Math.round(Math.random() * 40 + 60) }
-        };
-        console.log(`Seeded ${c.name} with random data`);
-      }
+      // Fallback to random
+      scores = {
+        infrastructure: { total: Math.round(Math.random() * 40 + 60) },
+        regulatory: { total: Math.round(Math.random() * 40 + 60) },
+        market: { total: Math.round(Math.random() * 40 + 60) },
+        workforce: { total: Math.round(Math.random() * 40 + 60) },
+        sustainability: { total: Math.round(Math.random() * 40 + 60) }
+      };
+      console.log(`Seeded ${c.name} with random data`);
     }
-    // Fetch news analysis
-    const newsAnalysis = await fetchNewsAnalysis(c.name);
+    // Gemini analysis
+    const analysis = await geminiAnalyzeCountry(c.name, scores);
+    // NewsAPI news
+    const news = await fetchNewsFromNewsAPI(c.name);
     await Country.replaceOne(
       { name: c.name },
       {
         name: c.name,
         scores,
-        newsAnalysis,
+        analysis,
+        news,
         history: [{ date: new Date(), scores }],
         lastUpdated: new Date()
       },
