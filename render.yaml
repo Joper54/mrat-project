@@ -1,28 +1,40 @@
 services:
   - type: web
-    name: mrat-frontend
+    name: mrat-server
     env: node
-    buildCommand: npm install && npm run build
-    startCommand: npm run preview
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
     envVars:
-      - key: VITE_API_URL
-        value: https://mrat-backend.onrender.com/api
-      - key: NODE_VERSION
-        value: 18.17.0
       - key: NODE_ENV
         value: production
-
-  - type: web
-    name: mrat-backend
-    env: node
-    buildCommand: npm install && npm run build:server
-    startCommand: node dist/server/index.js
-    envVars:
-      - key: MONGODB_URI
-        value: mongodb+srv://joelsaarelainen:cbHEnuaylnWoHmJQ@cluster0.tcglbjj.mongodb.net/mrat?retryWrites=true&w=majority&appName=Cluster0
       - key: PORT
         value: 3001
-      - key: NODE_VERSION
-        value: 18.17.0
-      - key: NODE_ENV
-        value: production 
+      - key: MONGODB_URI
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        value: 5432
+
+  - type: web
+    name: mrat-client
+    env: node
+    buildCommand: npm install
+    startCommand: npm run dev
+    envVars:
+      - key: VITE_API_URL
+        value: https://mrat-server.onrender.com
+
+databases:
+  - name: mrat-timescale
+    databaseName: mrat
+    user: mrat_user
+    plan: free 

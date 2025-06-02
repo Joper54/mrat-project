@@ -6,7 +6,8 @@
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "init-db": "ts-node src/init-db.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
