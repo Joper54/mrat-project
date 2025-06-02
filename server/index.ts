@@ -1,52 +1,92 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { connectDB } from './config/db.js';
-import countryRoutes from './routes/countries.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Load environment variables
-dotenv.config();
+import { clientPromise } from './config';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const app = express();
-const port = process.env.PORT || 3001; // Updated to match Render environment
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const port = process.env.PORT || 3001;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+// Initialize MongoDB connection
+let db: any;
+clientPromise.then((client) => {
+  db = client.db('mrat');
+  console.log('Connected to MongoDB');
+}).catch((err) => {
+  console.error('Failed to connect to MongoDB:', err);
 });
 
-// API Routes
-app.use('/api/countries', countryRoutes);
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
-  res.status(500).json({ message: 'Internal server error', error: err.message });
-});
-
-// Connect to MongoDB and start server
-const startServer = async () => {
+// Get all countries
+app.get('/api/countries', async (req, res) => {
   try {
-    await connectDB();
-    
-    app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`MongoDB URI: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
-    });
-
+    const countries = await db.collection('countries').find({}).toArray();
+    res.json(countries);
   } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+    console.error('Error fetching countries:', error);
+    res.status(500).json({ error: 'Failed to fetch countries' });
   }
-};
+});
 
-startServer(); 
+// Get country by code
+app.get('/api/countries/:code', async (req, res) => {
+  try {
+    const country = await db.collection('countries').findOne({ code: req.params.code });
+    if (!country) {
+      return res.status(404).json({ error: 'Country not found' });
+    }
+    res.json(country);
+  } catch (error) {
+    console.error('Error fetching country:', error);
+    res.status(500).json({ error: 'Failed to fetch country' });
+  }
+});
+
+// Get news for a country using Gemini AI
+app.get('/api/news/:countryCode', async (req, res) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    
+    const prompt = `Generate 5 recent news headlines and descriptions about ${req.params.countryCode}. 
+    Format the response as a JSON array with objects containing title, description, url, publishedAt, and source.name fields.`;
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Parse the JSON response
+    const news = JSON.parse(text);
+    res.json({ articles: news });
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    res.status(500).json({ error: 'Failed to fetch news' });
+  }
+});
+
+// Update country scores
+app.put('/api/countries/:code/scores', async (req, res) => {
+  try {
+    const { scores } = req.body;
+    const result = await db.collection('countries').updateOne(
+      { code: req.params.code },
+      { $set: { scores } }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Country not found' });
+    }
+    
+    res.json({ message: 'Scores updated successfully' });
+  } catch (error) {
+    console.error('Error updating scores:', error);
+    res.status(500).json({ error: 'Failed to update scores' });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+}); 

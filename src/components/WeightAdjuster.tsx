@@ -92,11 +92,11 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <span className="text-base font-semibold text-gray-700 dark:text-gray-300">
             Total:
-          </span>
+            </span>
           <span className={`text-base font-bold ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}> 
-            {totalWeight}%
-          </span>
-        </div>
+              {totalWeight}%
+            </span>
+          </div>
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           Adjust weights in 5% steps. Total always equals 100% (auto-balanced).
         </div>

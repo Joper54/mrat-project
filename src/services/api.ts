@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { CountryScore, UserWeights } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://mrat-backend.onrender.com/api';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 export const fetchAllScores = async (weights?: UserWeights): Promise<CountryScore[]> => {
   try {
@@ -91,4 +92,50 @@ export const exportToExcel = (countries: CountryScore[]) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+export interface CountryData {
+  name: string;
+  code: string;
+  gdp: number;
+  population: number;
+  happiness: number;
+  education: number;
+  healthcare: number;
+  environment: number;
+  safety: number;
+  infrastructure: number;
+  innovation: number;
+  corruption: number;
+}
+
+export interface NewsItem {
+  title: string;
+  description: string;
+  url: string;
+  publishedAt: string;
+  source: {
+    name: string;
+  };
+}
+
+export const api = {
+  async getCountries(): Promise<CountryData[]> {
+    const response = await axios.get(`${API_URL}/countries`);
+    return response.data;
+  },
+
+  async getCountryDetails(code: string): Promise<CountryData> {
+    const response = await axios.get(`${API_URL}/countries/${code}`);
+    return response.data;
+  },
+
+  async getNews(countryCode: string): Promise<NewsItem[]> {
+    const response = await axios.get(`${API_URL}/news/${countryCode}`, {
+      headers: {
+        'Authorization': `Bearer ${GEMINI_API_KEY}`
+      }
+    });
+    return response.data.articles;
+  }
 };
