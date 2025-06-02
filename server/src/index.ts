@@ -115,7 +115,7 @@ app.get('/api/gemini/insights', async (req, res) => {
       electricity_access: 'EG.ELC.ACCS.ZS',
       co2_emissions: 'EN.ATM.CO2E.PC'
     };
-    async function fetchWorldBankData(countryCode, indicatorCode) {
+    async function fetchWorldBankData(countryCode: string, indicatorCode: string): Promise<number | null> {
       const url = `http://api.worldbank.org/v2/country/${countryCode}/indicator/${indicatorCode}?format=json&per_page=100`;
       const res = await fetch(url);
       const data = await res.json();
@@ -129,9 +129,9 @@ app.get('/api/gemini/insights', async (req, res) => {
       return null;
     }
     // Gather data for all countries
-    const countryData = [];
+    const countryData: Array<Record<string, string | number | null>> = [];
     for (const c of countries) {
-      const entry = { country: c.country };
+      const entry: Record<string, string | number | null> = { country: c.country };
       for (const [key, code] of Object.entries(indicators)) {
         entry[key] = await fetchWorldBankData(c.code, code);
       }
