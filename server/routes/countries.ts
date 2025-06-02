@@ -3,10 +3,10 @@ import Country from '../models/Country.js';
 
 const router = express.Router();
 
-// Get all countries with their scores
+// Get all countries with their scores, news, analysis, lastUpdated
 router.get('/', async (req, res, next) => {
   try {
-    const countries = await Country.find().select('name scores');
+    const countries = await Country.find().select('name scores news analysis lastUpdated');
     res.json(countries);
   } catch (error) {
     next(error);
@@ -21,6 +21,19 @@ router.get('/:name', async (req, res, next) => {
       return res.status(404).json({ message: 'Country not found' });
     }
     res.json(country);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get only the analysis for a country
+router.get('/:name/analysis', async (req, res, next) => {
+  try {
+    const country = await Country.findOne({ name: req.params.name }).select('analysis');
+    if (!country) {
+      return res.status(404).json({ message: 'Country not found' });
+    }
+    res.json(country.analysis);
   } catch (error) {
     next(error);
   }

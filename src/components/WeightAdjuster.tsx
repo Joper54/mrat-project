@@ -23,7 +23,34 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
   }, [weights]);
 
   const handleWeightChange = (category: keyof UserWeights, value: number) => {
-    const newWeights = { ...weights, [category]: value };
+    // Clamp value to nearest 5
+    value = Math.round(value / 5) * 5;
+    let newWeights = { ...weights, [category]: value };
+    let sum = Object.values(newWeights).reduce((a, b) => a + b, 0);
+
+    if (sum !== 100) {
+      // Distribute the difference among other categories
+      const diff = 100 - value;
+      const otherKeys = Object.keys(weights).filter(k => k !== category);
+      let otherTotal = otherKeys.reduce((acc, k) => acc + weights[k as keyof UserWeights], 0);
+      let adjusted = { ...newWeights };
+      if (otherTotal === 0) {
+        // If all others are zero, just set the changed one to 100
+        adjusted = { ...weights, [category]: 100 };
+      } else {
+        otherKeys.forEach((k, i) => {
+          // Proportionally distribute remaining weight
+          let portion = Math.round((weights[k as keyof UserWeights] / otherTotal) * (100 - value) / 5) * 5;
+          // On last key, fix rounding error
+          if (i === otherKeys.length - 1) {
+            portion = diff - Object.values(adjusted).reduce((a, b) => a + (k !== category ? b : 0), 0);
+          }
+          adjusted[k as keyof UserWeights] = Math.max(0, portion);
+        });
+        adjusted[category] = value;
+      }
+      newWeights = adjusted;
+    }
     setWeights(newWeights);
     onWeightsChange(newWeights);
   };
@@ -51,6 +78,7 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
               type="range"
               min="0"
               max="100"
+              step="5"
               value={weights[key as keyof UserWeights]}
               onChange={(e) => handleWeightChange(key as keyof UserWeights, parseInt(e.target.value))}
               className="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
@@ -74,6 +102,9 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
               Total weight must equal 100%
             </p>
           )}
+        </div>
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          Adjust weights in 5% steps. Total always equals 100% (auto-balanced).
         </div>
       </div>
     </div>

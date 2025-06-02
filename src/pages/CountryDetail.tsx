@@ -4,17 +4,17 @@ import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import ScoreBreakdown from '../components/ScoreBreakdown';
 import NewsFeed from '../components/NewsFeed';
 import HistoricalChart from '../components/HistoricalChart';
-import { fetchAllScores, fetchCountryHistory } from '../services/api';
-import { CountryScore, HistoricalScore, Scores } from '../types';
+import { fetchAllScores } from '../services/api';
+import { CountryScore, Scores } from '../types';
 import { aspectNameMap } from '../utils/formatters';
 
 const CountryDetail: React.FC = () => {
   const { countryName } = useParams<{ countryName: string }>();
   const [countryData, setCountryData] = useState<CountryScore | null>(null);
-  const [historicalData, setHistoricalData] = useState<HistoricalScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAspect, setSelectedAspect] = useState<keyof Scores | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,10 +32,9 @@ const CountryDetail: React.FC = () => {
         
         setCountryData(currentCountry);
         
-        // Get historical data
-        if (countryName) {
-          const history = await fetchCountryHistory(countryName);
-          setHistoricalData(history);
+        // Fetch history from backend (if present)
+        if ((currentCountry as any).history) {
+          setHistory((currentCountry as any).history);
         }
         
         setError(null);
@@ -108,9 +107,21 @@ const CountryDetail: React.FC = () => {
             Rank: #{countryData.rank}
           </div>
           <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm font-medium px-3 py-1 rounded-full">
-            Score: {countryData.total_score.toFixed(1)}/10
+            Score: {countryData.totalScore.toFixed(1)}/10
           </div>
         </div>
+        {('lastUpdated' in (countryData as any)) && (countryData as any).lastUpdated && (
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Last updated: {typeof (countryData as any).lastUpdated === 'string' ? (countryData as any).lastUpdated.slice(0, 19).replace('T', ' ') : new Date((countryData as any).lastUpdated).toLocaleString()}
+          </div>
+        )}
+        {('analysis' in (countryData as any)) && (countryData as any).analysis && (
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mt-4">
+            <div className="text-sm text-gray-700 dark:text-gray-200 font-semibold mb-1">Gemini Analysis</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Sentiment: {(countryData as any).analysis.sentiment || 'N/A'}</div>
+            <div className="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-line">{(countryData as any).analysis.summary || (countryData as any).analysis}</div>
+          </div>
+        )}
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -122,16 +133,15 @@ const CountryDetail: React.FC = () => {
         </div>
         <div className="lg:col-span-1">
           <NewsFeed 
-            news={countryData.news} 
+            news={(countryData as any).news} 
             countryName={countryData.country} 
           />
         </div>
       </div>
-      
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-            Historical Performance
+            Historical Trends
           </h2>
           <div className="flex space-x-2">
             <button
@@ -160,7 +170,7 @@ const CountryDetail: React.FC = () => {
           </div>
         </div>
         <HistoricalChart 
-          data={historicalData} 
+          data={history} 
           aspect={selectedAspect || undefined} 
         />
       </div>

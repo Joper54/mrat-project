@@ -2,7 +2,6 @@ import React from 'react';
 import { ExternalLink, Clock, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { News } from '../types';
 import { formatDate, formatTimeAgo, aspectNameMap } from '../utils/formatters';
-import { fetchNews } from '../services/api';
 
 interface NewsFeedProps {
   news: News[];
@@ -17,22 +16,7 @@ const SentimentIcon: React.FC<{ sentiment: string }> = ({ sentiment }) => {
 };
 
 const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false }) => {
-  const [fetchedNews, setFetchedNews] = React.useState<News[]>(news || []);
-  const [isLoading, setIsLoading] = React.useState(loading);
-
-  React.useEffect(() => {
-    if (!news || news.length === 0) {
-      setIsLoading(true);
-      fetchNews(countryName)
-        .then((data) => {
-          setFetchedNews(data.articles || []);
-        })
-        .catch(() => setFetchedNews([]))
-        .finally(() => setIsLoading(false));
-    }
-  }, [countryName, news]);
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="animate-pulse">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
@@ -47,7 +31,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false 
     );
   }
 
-  if (!fetchedNews || fetchedNews.length === 0) {
+  if (!news || news.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors h-full">
         <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
@@ -66,42 +50,31 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false 
         {countryName} News
       </h3>
       <div className="space-y-4">
-        {fetchedNews.map((article, index) => (
+        {news.map((article, index) => (
           <div 
             key={index} 
             className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
           >
-            <a 
-              href={article.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="group"
-            >
-              <div className="flex items-center mb-1">
-                <SentimentIcon sentiment={article.sentiment} />
-                <h4 className="text-md font-medium text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mr-2">
-                  {article.title}
-                  <ExternalLink size={14} className="inline-block ml-1 mb-1" />
-                </h4>
-                <span className="ml-auto flex items-center text-xs text-gray-500 dark:text-gray-400">
-                  <Clock size={12} className="mr-1" />
-                  {formatTimeAgo(article.published_at)}
-                </span>
-              </div>
-              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2 space-x-2">
-                <span>{article.source}</span>
-                {article.category && (
-                  <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold ml-2">
-                    {aspectNameMap[article.category] || article.category}
-                  </span>
-                )}
-              </div>
-              {article.summary && (
-                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-                  {article.summary}
-                </p>
+            <div className="flex items-center mb-1">
+              <SentimentIcon sentiment={article.sentiment} />
+              <h4 className="text-md font-medium text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mr-2">
+                {article.title}
+              </h4>
+              <span className="ml-auto flex items-center text-xs text-gray-500 dark:text-gray-400">
+                <Clock size={12} className="mr-1" />
+                {article.date ? formatTimeAgo(typeof article.date === 'string' ? article.date : article.date.toString()) : ''}
+              </span>
+            </div>
+            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2 space-x-2">
+              <span>{article.source}</span>
+              {article.reliability !== undefined && (
+                <span className="ml-2">Reliability: {(article.reliability * 100).toFixed(0)}%</span>
               )}
-            </a>
+              <span className="ml-2">{article.date ? `Updated ${formatTimeAgo(typeof article.date === 'string' ? article.date : article.date.toString())}` : ''}</span>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+              {article.content}
+            </p>
           </div>
         ))}
       </div>
