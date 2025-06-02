@@ -4,6 +4,8 @@ import { clientPromise } from './config.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import { instructor, VisualizationRequestSchema, VisualizationResponseSchema } from './types.js';
+import { initializeDatabase, storeMetrics, getMetricsForVisualization } from './db.js';
 
 dotenv.config();
 
@@ -13,13 +15,18 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Initialize MongoDB connection
+// Initialize MongoDB and TimescaleDB
 let db: any;
-clientPromise.then((client) => {
-  db = client.db('mrat');
-  console.log('Connected to MongoDB');
-}).catch((err) => {
-  console.error('Failed to connect to MongoDB:', err);
+Promise.all([
+  clientPromise.then((client) => {
+    db = client.db('mrat');
+    console.log('Connected to MongoDB');
+  }),
+  initializeDatabase().then(() => {
+    console.log('TimescaleDB initialized');
+  })
+]).catch((err) => {
+  console.error('Failed to initialize databases:', err);
 });
 
 // Initialize Gemini AI
@@ -95,9 +102,10 @@ app.put('/api/countries/:code/scores', async (req, res) => {
   }
 });
 
-// Fetch live data from World Bank and analyze with Gemini
-app.get('/api/gemini/insights', async (req, res) => {
+// Enhanced Gemini insights endpoint with TimescaleDB integration
+app.post('/api/gemini/insights', async (req, res) => {
   try {
+    const request = VisualizationRequestSchema.parse(req.body);
     const countries = [
       { code: 'NGA', country: 'Nigeria' },
       { code: 'GHA', country: 'Ghana' },
@@ -115,6 +123,7 @@ app.get('/api/gemini/insights', async (req, res) => {
       electricity_access: 'EG.ELC.ACCS.ZS',
       co2_emissions: 'EN.ATM.CO2E.PC'
     };
+
     async function fetchWorldBankData(countryCode: string, indicatorCode: string): Promise<number | null> {
       const url = `http://api.worldbank.org/v2/country/${countryCode}/indicator/${indicatorCode}?format=json&per_page=100`;
       const res = await fetch(url);
@@ -128,25 +137,59 @@ app.get('/api/gemini/insights', async (req, res) => {
       }
       return null;
     }
+
     // Gather data for all countries
     const countryData: Array<Record<string, string | number | null>> = [];
     for (const c of countries) {
       const entry: Record<string, string | number | null> = { country: c.country };
+      const metrics: Record<string, number | null> = {};
+      
       for (const [key, code] of Object.entries(indicators)) {
-        entry[key] = await fetchWorldBankData(c.code, code);
+        const value = await fetchWorldBankData(c.code, code);
+        entry[key] = value;
+        metrics[key] = value;
       }
+      
       countryData.push(entry);
+      // Store metrics in TimescaleDB
+      await storeMetrics(c.code, metrics);
     }
-    // Prepare prompt for Gemini
-    const prompt = `Summarize and compare the following African countries based on these metrics: GDP, population, unemployment, school enrollment, life expectancy, electricity access, and CO₂ emissions. Data: ${JSON.stringify(countryData)}`;
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const summary = response.text();
-    res.json({ summary, data: countryData });
+
+    // Get historical data if requested
+    let historicalData = [];
+    if (request.filters?.time_range) {
+      const [start, end] = request.filters.time_range.split(',');
+      historicalData = await getMetricsForVisualization(
+        new Date(start),
+        new Date(end),
+        [request.y_axis],
+        countries.map(c => c.code)
+      );
+    }
+
+    // Use Instructor to generate structured response
+    const prompt = `Analyze the following data and create a visualization response:
+    Question: ${request.question}
+    Current Data: ${JSON.stringify(countryData)}
+    ${historicalData.length ? `Historical Data: ${JSON.stringify(historicalData)}` : ''}
+    Visualization Type: ${request.visualization_type}
+    X-Axis: ${request.x_axis}
+    Y-Axis: ${request.y_axis}
+    Please provide insights and recommendations based on the data.`;
+
+    const response = await instructor.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'gpt-4-turbo-preview',
+    });
+
+    const visualizationResponse = VisualizationResponseSchema.parse(response.choices[0].message.content);
+    res.json({
+      ...visualizationResponse,
+      historicalData: historicalData.length ? historicalData : undefined
+    });
   } catch (error) {
     console.error('Error in Gemini insights:', error);
-    res.status(500).json({ error: 'Failed to generate Gemini insights' });
+    res.status(500).json({ error: 'Failed to generate insights' });
   }
 });
 
