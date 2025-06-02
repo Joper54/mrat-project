@@ -47,6 +47,9 @@ const countrySchema = new mongoose.Schema({
   lastUpdated: {
     type: Date,
     default: Date.now
+  },
+  analysis: {
+    type: mongoose.Schema.Types.Mixed
   }
 });
 
