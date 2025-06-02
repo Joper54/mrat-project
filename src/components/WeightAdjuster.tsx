@@ -10,9 +10,9 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
   const [weights, setWeights] = useState<UserWeights>({
     infrastructure: 20,
     regulatory: 20,
-    market_demand: 20,
-    stability: 20,
-    partnership: 20
+    market: 20,
+    workforce: 20,
+    sustainability: 20
   });
 
   const [totalWeight, setTotalWeight] = useState(100);
@@ -58,20 +58,20 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
   const categories = [
     { key: 'infrastructure', label: 'Infrastructure' },
     { key: 'regulatory', label: 'Regulatory' },
-    { key: 'market_demand', label: 'Market Demand' },
-    { key: 'stability', label: 'Stability' },
-    { key: 'partnership', label: 'Partnership' }
+    { key: 'market', label: 'Market' },
+    { key: 'workforce', label: 'Workforce' },
+    { key: 'sustainability', label: 'Sustainability' }
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-        Adjust Factor Weights
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8 border border-gray-100 dark:border-gray-700">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white tracking-tight">
+        Assessment Weights
       </h2>
-      <div className="space-y-4">
+      <div className="space-y-6">
         {categories.map(({ key, label }) => (
-          <div key={key} className="flex items-center space-x-4">
-            <label className="w-32 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div key={key} className="flex items-center gap-4">
+            <label className="w-48 text-base font-medium text-gray-700 dark:text-gray-300">
               {label}
             </label>
             <input
@@ -81,27 +81,21 @@ const WeightAdjuster: React.FC<WeightAdjusterProps> = ({ onWeightsChange }) => {
               step="5"
               value={weights[key as keyof UserWeights]}
               onChange={(e) => handleWeightChange(key as keyof UserWeights, parseInt(e.target.value))}
-              className="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+              className="flex-grow h-2 bg-gray-200 rounded-full appearance-none cursor-pointer dark:bg-gray-700 accent-blue-600"
+              style={{ accentColor: '#2563EB' }}
             />
-            <span className="w-12 text-sm text-gray-600 dark:text-gray-400">
+            <span className="w-12 text-base font-semibold text-gray-800 dark:text-gray-100 text-right">
               {weights[key as keyof UserWeights]}%
             </span>
           </div>
         ))}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Total Weight
-            </span>
-            <span className={`text-sm font-medium ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}>
-              {totalWeight}%
-            </span>
-          </div>
-          {totalWeight !== 100 && (
-            <p className="mt-2 text-sm text-red-600">
-              Total weight must equal 100%
-            </p>
-          )}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <span className="text-base font-semibold text-gray-700 dark:text-gray-300">
+            Total:
+          </span>
+          <span className={`text-base font-bold ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}> 
+            {totalWeight}%
+          </span>
         </div>
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           Adjust weights in 5% steps. Total always equals 100% (auto-balanced).

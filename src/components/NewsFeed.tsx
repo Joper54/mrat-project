@@ -33,10 +33,10 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false 
 
   if (!news || news.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors h-full">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          {countryName} News
-        </h3>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white tracking-tight">
+          Latest News
+        </h2>
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           No news articles available
         </div>
@@ -45,36 +45,18 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news, countryName, loading = false 
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-        {countryName} News
-      </h3>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white tracking-tight">
+        Latest News
+      </h2>
       <div className="space-y-4">
-        {news.map((article, index) => (
-          <div 
-            key={index} 
-            className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-          >
-            <div className="flex items-center mb-1">
-              <SentimentIcon sentiment={article.sentiment} />
-              <h4 className="text-md font-medium text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mr-2">
-                {article.title}
-              </h4>
-              <span className="ml-auto flex items-center text-xs text-gray-500 dark:text-gray-400">
-                <Clock size={12} className="mr-1" />
-                {article.date ? formatTimeAgo(typeof article.date === 'string' ? article.date : article.date.toString()) : ''}
-              </span>
+        {news.map((item, index) => (
+          <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{item.title}</h3>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">{item.content}</p>
+            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <span>{item.source}</span> • <span>{formatDate(item.date.toString())}</span>
             </div>
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2 space-x-2">
-              <span>{article.source}</span>
-              {article.reliability !== undefined && (
-                <span className="ml-2">Reliability: {(article.reliability * 100).toFixed(0)}%</span>
-              )}
-              <span className="ml-2">{article.date ? `Updated ${formatTimeAgo(typeof article.date === 'string' ? article.date : article.date.toString())}` : ''}</span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-              {article.content}
-            </p>
           </div>
         ))}
       </div>
